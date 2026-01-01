@@ -5,10 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Camera,
   TrendingDown,
   Apple,
   Flame,
@@ -16,22 +14,9 @@ import {
   Activity,
   Target,
   Calendar,
-  Upload,
   Sparkles,
   CheckCircle2,
   Clock,
-  AlertCircle,
-  TrendingUp,
-  Zap,
-  Heart,
-  Scale,
-  Utensils,
-  Info,
-  Lock,
-  CreditCard,
-  User,
-  Mail,
-  KeyRound,
   Dumbbell,
   Play,
   Pause,
@@ -42,29 +27,18 @@ import {
   Bike,
   Waves,
   Mountain,
-  Plus,
-  Minus,
+  Zap,
+  Heart,
+  Mail,
+  Camera,
 } from "lucide-react";
+import FoodAnalyzer from "./FoodAnalyzer";
 
 interface DashboardProps {
   userData: any;
 }
 
 export default function Dashboard({ userData }: DashboardProps) {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isPaid, setIsPaid] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [processingPayment, setProcessingPayment] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [processingAuth, setProcessingAuth] = useState(false);
-  const [userEmail, setUserEmail] = useState<string>("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   // Estados do Modo Ginásio
   const [gymMode, setGymMode] = useState(false);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -72,13 +46,6 @@ export default function Dashboard({ userData }: DashboardProps) {
   const [caloriesBurned, setCaloriesBurned] = useState(0);
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
   const [exerciseIntensity, setExerciseIntensity] = useState<"low" | "medium" | "high">("medium");
-
-  // Estados do formulário de login/cadastro
-  const [authForm, setAuthForm] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
 
   // Timer do treino
   useEffect(() => {
@@ -205,118 +172,6 @@ export default function Dashboard({ userData }: DashboardProps) {
     setSelectedExercise(null);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSelectedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleAnalyzeClick = () => {
-    if (!isLoggedIn) {
-      setShowLoginModal(true);
-      return;
-    }
-
-    if (!isPaid) {
-      setShowPaymentModal(true);
-      return;
-    }
-    
-    if (selectedImage) {
-      analyzeFood(selectedImage);
-    }
-  };
-
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setProcessingAuth(true);
-    setError(null);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      if (isLogin) {
-        if (!authForm.email || !authForm.password) {
-          throw new Error("Preencha todos os campos");
-        }
-        console.log("Login:", authForm.email);
-      } else {
-        if (!authForm.name || !authForm.email || !authForm.password) {
-          throw new Error("Preencha todos os campos");
-        }
-        if (authForm.password.length < 6) {
-          throw new Error("Senha deve ter no mínimo 6 caracteres");
-        }
-        console.log("Cadastro:", authForm);
-      }
-
-      setUserEmail(authForm.email);
-      setIsLoggedIn(true);
-      setShowLoginModal(false);
-      setShowPaymentModal(true);
-    } catch (err: any) {
-      console.error("Erro na autenticação:", err);
-      setError(err.message || "Erro ao processar. Tente novamente.");
-    } finally {
-      setProcessingAuth(false);
-    }
-  };
-
-  const handlePayment = async () => {
-    setProcessingPayment(true);
-    setError(null);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      
-      setIsPaid(true);
-      setShowPaymentModal(false);
-      
-      if (selectedImage) {
-        analyzeFood(selectedImage);
-      }
-    } catch (err: any) {
-      console.error("Erro no pagamento:", err);
-      setError("Erro ao processar pagamento. Tente novamente.");
-    } finally {
-      setProcessingPayment(false);
-    }
-  };
-
-  const analyzeFood = async (imageData: string) => {
-    setAnalyzing(true);
-    setError(null);
-    setAnalysis(null);
-
-    try {
-      const response = await fetch("/api/analyze-food", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ image: imageData }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Erro ao analisar a imagem");
-      }
-
-      setAnalysis(data);
-    } catch (err: any) {
-      console.error("Erro na análise:", err);
-      setError(err.message || "Não foi possível analisar a imagem. Tente novamente.");
-    } finally {
-      setAnalyzing(false);
-    }
-  };
-
   const currentWeight = Number(userData?.weight) || 80;
   const targetWeight = Number(userData?.targetWeight) || 70;
   const weightLost = 3.5;
@@ -331,7 +186,7 @@ export default function Dashboard({ userData }: DashboardProps) {
     waterConsumed: 1.8,
   };
 
-  const displayContact = userData?.contact || userEmail;
+  const displayContact = userData?.contact;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors">
@@ -362,245 +217,6 @@ export default function Dashboard({ userData }: DashboardProps) {
           </div>
         </div>
       </header>
-
-      {/* Modal de Login/Cadastro */}
-      {showLoginModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full p-8 dark:bg-gray-800 dark:border-gray-700 animate-in fade-in zoom-in duration-300">
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="w-10 h-10 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Bem-vindo ao NutriLife Pro
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  Aqui tem tudo o que você precisa
-                </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {isLogin 
-                    ? "Faça login para continuar com a análise" 
-                    : "Cadastre-se para desbloquear análises nutricionais"}
-                </p>
-              </div>
-
-              <form onSubmit={handleAuth} className="space-y-4">
-                {!isLogin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">
-                      Nome Completo
-                    </Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <Input
-                        id="name"
-                        type="text"
-                        placeholder="Seu nome"
-                        value={authForm.name}
-                        onChange={(e) => setAuthForm({ ...authForm, name: e.target.value })}
-                        className="pl-10"
-                        required={!isLogin}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">
-                    E-mail
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="seu@email.com"
-                      value={authForm.email}
-                      onChange={(e) => setAuthForm({ ...authForm, email: e.target.value })}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">
-                    Senha
-                  </Label>
-                  <div className="relative">
-                    <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={authForm.password}
-                      onChange={(e) => setAuthForm({ ...authForm, password: e.target.value })}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                  {!isLogin && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Mínimo de 6 caracteres
-                    </p>
-                  )}
-                </div>
-
-                {error && (
-                  <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-3">
-                    <p className="text-sm text-red-800 dark:text-red-200 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4" />
-                      {error}
-                    </p>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  disabled={processingAuth}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-6 text-lg"
-                >
-                  {processingAuth ? (
-                    <>
-                      <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Processando...
-                    </>
-                  ) : (
-                    <>{isLogin ? "Entrar" : "Criar Conta"}</>
-                  )}
-                </Button>
-              </form>
-
-              <div className="text-center space-y-3">
-                <button
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setError(null);
-                  }}
-                  className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline"
-                >
-                  {isLogin 
-                    ? "Não tem conta? Cadastre-se" 
-                    : "Já tem conta? Faça login"}
-                </button>
-
-                <Button
-                  onClick={() => {
-                    setShowLoginModal(false);
-                    setSelectedImage(null);
-                    setError(null);
-                  }}
-                  variant="outline"
-                  className="w-full"
-                  disabled={processingAuth}
-                >
-                  Cancelar
-                </Button>
-              </div>
-
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                🔒 Seus dados estão seguros e criptografados
-              </p>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Modal de Pagamento */}
-      {showPaymentModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="max-w-md w-full p-8 dark:bg-gray-800 dark:border-gray-700 animate-in fade-in zoom-in duration-300">
-            <div className="text-center space-y-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center mx-auto">
-                <CreditCard className="w-10 h-10 text-white" />
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Análise Premium
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Desbloqueie análise nutricional completa com IA avançada
-                </p>
-              </div>
-
-              <div className="bg-emerald-50 dark:bg-emerald-900/30 rounded-lg p-6 border-2 border-emerald-200 dark:border-emerald-700">
-                <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2">
-                  R$ 9,90
-                </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Análise única com informações detalhadas
-                </p>
-              </div>
-
-              <div className="space-y-3 text-left">
-                <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                  <span>Identificação precisa de ingredientes</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                  <span>Valores nutricionais completos</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                  <span>Recomendações personalizadas</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
-                  <span>Impacto no seu objetivo</span>
-                </div>
-              </div>
-
-              {error && (
-                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-3">
-                  <p className="text-sm text-red-800 dark:text-red-200 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4" />
-                    {error}
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                <Button
-                  onClick={handlePayment}
-                  disabled={processingPayment}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-6 text-lg"
-                >
-                  {processingPayment ? (
-                    <>
-                      <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Processando...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-5 h-5 mr-2" />
-                      Pagar e Analisar
-                    </>
-                  )}
-                </Button>
-
-                <Button
-                  onClick={() => {
-                    setShowPaymentModal(false);
-                    setSelectedImage(null);
-                  }}
-                  variant="outline"
-                  className="w-full"
-                  disabled={processingPayment}
-                >
-                  Cancelar
-                </Button>
-              </div>
-
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                🔒 Pagamento seguro e criptografado
-              </p>
-            </div>
-          </Card>
-        </div>
-      )}
 
       <div className="container mx-auto px-4 py-8">
         {/* Progress Overview */}
@@ -641,21 +257,24 @@ export default function Dashboard({ userData }: DashboardProps) {
           <Card className="p-6 dark:bg-gray-800 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Refeições Analisadas</p>
-                <p className="text-4xl font-bold text-gray-900 dark:text-white">156</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Treinos Completos</p>
+                <p className="text-4xl font-bold text-gray-900 dark:text-white">42</p>
               </div>
-              <Camera className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
+              <Dumbbell className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              ✨ Média de 6.8 por dia
+              ✨ Média de 6 por semana
             </p>
           </Card>
         </div>
 
-        <Tabs defaultValue="analyze" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-4">
+        <Tabs defaultValue="today" className="space-y-6">
+          <TabsList className="grid w-full max-w-3xl grid-cols-4">
             <TabsTrigger value="today">Hoje</TabsTrigger>
-            <TabsTrigger value="analyze">Analisar</TabsTrigger>
+            <TabsTrigger value="analyzer">
+              <Camera className="w-4 h-4 mr-2" />
+              Analisar Foto
+            </TabsTrigger>
             <TabsTrigger value="gym">
               <Dumbbell className="w-4 h-4 mr-2" />
               Ginásio
@@ -769,177 +388,29 @@ export default function Dashboard({ userData }: DashboardProps) {
             </Card>
           </TabsContent>
 
-          {/* Analyze Tab */}
-          <TabsContent value="analyze" className="space-y-6">
-            <Card className="p-8 dark:bg-gray-800 dark:border-gray-700">
-              <div className="text-center space-y-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto">
-                  <Camera className="w-10 h-10 text-white" />
+          {/* Food Analyzer Tab */}
+          <TabsContent value="analyzer" className="space-y-6">
+            <Card className="p-8 bg-gradient-to-br from-purple-500 to-pink-600 text-white mb-6">
+              <div className="text-center space-y-4">
+                <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mx-auto">
+                  <Camera className="w-12 h-12" />
                 </div>
-
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                    Análise Nutricional Avançada com IA
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300 text-lg">
-                    Tire uma foto da sua comida e receba análise completa e detalhada em tempo real
-                  </p>
-                </div>
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-
-                {!selectedImage ? (
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    size="lg"
-                    className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-lg px-12 py-6 flex items-center gap-3 mx-auto"
-                  >
-                    <Upload className="w-6 h-6" />
-                    Enviar Foto da Refeição
-                  </Button>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="relative rounded-2xl overflow-hidden max-w-md mx-auto shadow-2xl">
-                      <img
-                        src={selectedImage}
-                        alt="Refeição"
-                        className="w-full h-auto"
-                      />
-                    </div>
-
-                    {!isLoggedIn && !analyzing && !analysis && (
-                      <Card className="p-6 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-700">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-center gap-3 text-blue-900 dark:text-blue-100">
-                            <User className="w-6 h-6" />
-                            <p className="font-semibold text-lg">
-                              Login Necessário
-                            </p>
-                          </div>
-                          <p className="text-sm text-blue-700 dark:text-blue-300 text-center">
-                            Faça login ou crie uma conta para continuar com a análise nutricional
-                          </p>
-                          <Button
-                            onClick={handleAnalyzeClick}
-                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-6"
-                          >
-                            <User className="w-5 h-5 mr-2" />
-                            Entrar ou Cadastrar
-                          </Button>
-                        </div>
-                      </Card>
-                    )}
-
-                    {isLoggedIn && !isPaid && !analyzing && !analysis && (
-                      <Card className="p-6 bg-amber-50 dark:bg-amber-900/30 border-2 border-amber-200 dark:border-amber-700">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-center gap-3 text-amber-900 dark:text-amber-100">
-                            <Lock className="w-6 h-6" />
-                            <p className="font-semibold text-lg">
-                              Análise Bloqueada
-                            </p>
-                          </div>
-                          <p className="text-sm text-amber-700 dark:text-amber-300 text-center">
-                            Complete o pagamento para desbloquear a análise nutricional completa desta refeição
-                          </p>
-                          <Button
-                            onClick={handleAnalyzeClick}
-                            className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-6"
-                          >
-                            <CreditCard className="w-5 h-5 mr-2" />
-                            Pagar e Analisar Agora
-                          </Button>
-                        </div>
-                      </Card>
-                    )}
-
-                    {analyzing ? (
-                      <Card className="p-8 bg-emerald-50 dark:bg-emerald-900/30 border-2 border-emerald-200 dark:border-emerald-700">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-center gap-3">
-                            <div className="w-8 h-8 border-4 border-emerald-600 dark:border-emerald-400 border-t-transparent rounded-full animate-spin" />
-                            <p className="text-emerald-900 dark:text-emerald-100 font-semibold text-lg">
-                              Analisando sua refeição com IA avançada...
-                            </p>
-                          </div>
-                          <div className="text-center space-y-2">
-                            <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                              🔍 Identificando ingredientes e porções...
-                            </p>
-                            <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                              📊 Calculando valores nutricionais precisos...
-                            </p>
-                            <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                              💡 Gerando recomendações personalizadas...
-                            </p>
-                            <p className="text-sm text-emerald-700 dark:text-emerald-300">
-                              🎯 Avaliando impacto no seu objetivo...
-                            </p>
-                          </div>
-                        </div>
-                      </Card>
-                    ) : error ? (
-                      <Card className="p-8 bg-red-50 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-700">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-center gap-3 text-red-900 dark:text-red-100">
-                            <AlertCircle className="w-6 h-6" />
-                            <p className="font-semibold">{error}</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm text-red-700 dark:text-red-300 mb-4">
-                              Dicas para melhorar a análise:
-                            </p>
-                            <ul className="text-sm text-red-700 dark:text-red-300 space-y-1 text-left max-w-md mx-auto">
-                              <li>• Tire a foto com boa iluminação</li>
-                              <li>• Certifique-se que a comida está visível</li>
-                              <li>• Evite fotos muito escuras ou desfocadas</li>
-                              <li>• Verifique sua conexão com a internet</li>
-                            </ul>
-                          </div>
-                          <Button
-                            onClick={() => {
-                              setSelectedImage(null);
-                              setError(null);
-                              setIsPaid(false);
-                              setIsLoggedIn(false);
-                            }}
-                            variant="outline"
-                            className="mx-auto"
-                          >
-                            Tentar Novamente
-                          </Button>
-                        </div>
-                      </Card>
-                    ) : analysis ? (
-                      <div className="space-y-6 text-left">
-                        {/* Análise completa renderizada aqui - mantido o código original */}
-                        <Button
-                          onClick={() => {
-                            setSelectedImage(null);
-                            setAnalysis(null);
-                            setIsPaid(false);
-                            setIsLoggedIn(false);
-                          }}
-                          variant="outline"
-                          className="w-full"
-                        >
-                          Analisar Outra Refeição
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
-                )}
+                <h2 className="text-3xl font-bold">Análise de Refeições com IA</h2>
+                <p className="text-lg text-purple-100">
+                  Tire uma foto da sua comida e receba análise nutricional completa instantaneamente
+                </p>
               </div>
             </Card>
+
+            <FoodAnalyzer 
+              userGoals={`Perder ${currentWeight - targetWeight}kg em ${userData?.timeline}`}
+              onAnalysisComplete={(data) => {
+                console.log('Análise completa:', data);
+              }}
+            />
           </TabsContent>
 
-          {/* Gym Tab - NOVO */}
+          {/* Gym Tab */}
           <TabsContent value="gym" className="space-y-6">
             {!gymMode ? (
               <div className="space-y-6">

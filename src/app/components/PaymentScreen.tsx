@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, CheckCircle2, CreditCard, Shield, Sparkles, DollarSign, Euro, Phone } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CreditCard, Shield, Sparkles, DollarSign, Euro, Phone, AlertCircle } from "lucide-react";
 
 interface PaymentScreenProps {
   userData: any;
@@ -16,6 +16,7 @@ interface PaymentScreenProps {
 
 export default function PaymentScreen({ userData, onComplete, onBack }: PaymentScreenProps) {
   const [currency, setCurrency] = useState<"BRL" | "USD" | "EUR">("BRL");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("annual");
   const [paymentMethod, setPaymentMethod] = useState("credit-card");
   const [cardData, setCardData] = useState({
     number: "",
@@ -25,27 +26,69 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
   });
   const [mbwayPhone, setMbwayPhone] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   const handlePayment = () => {
-    setProcessing(true);
+    // Validação de pagamento
+    setPaymentError("");
+
+    // Validar método de pagamento
+    if (paymentMethod === "credit-card") {
+      if (!cardData.number || !cardData.name || !cardData.expiry || !cardData.cvv) {
+        setPaymentError("Por favor, preencha todos os dados do cartão de crédito.");
+        return;
+      }
+      if (cardData.number.replace(/\s/g, "").length < 13) {
+        setPaymentError("Número do cartão inválido.");
+        return;
+      }
+      if (cardData.cvv.length < 3) {
+        setPaymentError("CVV inválido.");
+        return;
+      }
+    }
+
+    if (paymentMethod === "mbway" && currency === "EUR") {
+      if (!mbwayPhone || mbwayPhone.length < 9) {
+        setPaymentError("Por favor, insira um número de telemóvel válido.");
+        return;
+      }
+    }
+
     // Simula processamento de pagamento
+    setProcessing(true);
     setTimeout(() => {
       setProcessing(false);
+      // Só avança se o pagamento for bem-sucedido
       onComplete();
     }, 2000);
   };
 
   // Preços base em cada moeda
   const prices = {
-    BRL: { annual: 497, symbol: "R$" },
-    USD: { annual: 97, symbol: "$" },
-    EUR: { annual: 89, symbol: "€" },
+    BRL: { 
+      monthly: 49.90,
+      annual: 497, 
+      symbol: "R$" 
+    },
+    USD: { 
+      monthly: 9.90,
+      annual: 97, 
+      symbol: "$" 
+    },
+    EUR: { 
+      monthly: 8.90,
+      annual: 89, 
+      symbol: "€" 
+    },
   };
 
   const currentPrice = prices[currency];
-  const annualPrice = currentPrice.annual;
-  const monthlyEquivalent = (annualPrice / 12).toFixed(2);
+  const price = billingPeriod === "annual" ? currentPrice.annual : currentPrice.monthly;
+  const monthlyEquivalent = billingPeriod === "annual" ? (currentPrice.annual / 12).toFixed(2) : currentPrice.monthly.toFixed(2);
   const currencySymbol = currentPrice.symbol;
+  const savingsAmount = billingPeriod === "annual" ? (currentPrice.monthly * 12 - currentPrice.annual).toFixed(2) : "0";
+  const savingsPercentage = billingPeriod === "annual" ? Math.round(((currentPrice.monthly * 12 - currentPrice.annual) / (currentPrice.monthly * 12)) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8 transition-colors">
@@ -64,12 +107,51 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
           <div className="space-y-6">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-                Plano Anual Premium
+                Escolha Seu Plano Premium
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300">
-                Acesso completo por 12 meses
+                Acesso completo a todas as funcionalidades
               </p>
             </div>
+
+            {/* Billing Period Selection */}
+            <Card className="p-6 bg-white dark:bg-gray-800 dark:border-gray-700 shadow-lg">
+              <Label className="text-base font-semibold mb-3 block dark:text-white">
+                Período de Cobrança:
+              </Label>
+              <RadioGroup
+                value={billingPeriod}
+                onValueChange={(value) => setBillingPeriod(value as "monthly" | "annual")}
+                className="grid grid-cols-2 gap-4"
+              >
+                <div className={`relative border-2 rounded-xl p-5 cursor-pointer transition-all ${billingPeriod === "monthly" ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/30" : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`}>
+                  <RadioGroupItem value="monthly" id="monthly" className="sr-only" />
+                  <Label htmlFor="monthly" className="cursor-pointer">
+                    <div className="text-center space-y-2">
+                      <div className="font-bold text-2xl dark:text-white">Mensal</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Pague mensalmente</div>
+                    </div>
+                  </Label>
+                </div>
+                
+                <div className={`relative border-2 rounded-xl p-5 cursor-pointer transition-all ${billingPeriod === "annual" ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/30" : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`}>
+                  <RadioGroupItem value="annual" id="annual" className="sr-only" />
+                  <Label htmlFor="annual" className="cursor-pointer">
+                    <div className="text-center space-y-2">
+                      <div className="font-bold text-2xl dark:text-white">Anual</div>
+                      <div className="text-sm text-emerald-600 dark:text-emerald-400 font-semibold">
+                        Economize {savingsPercentage}%
+                      </div>
+                    </div>
+                  </Label>
+                  {billingPeriod === "annual" && (
+                    <div className="absolute -top-3 -right-3 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                      MELHOR OFERTA
+                    </div>
+                  )}
+                </div>
+              </RadioGroup>
+            </Card>
 
             {/* Currency Selection */}
             <Card className="p-6 bg-white dark:bg-gray-800 dark:border-gray-700 shadow-lg">
@@ -115,17 +197,21 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
             <Card className="p-8 bg-gradient-to-br from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-800 text-white">
               <div className="space-y-4">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold">{currencySymbol} {annualPrice}</span>
-                  <span className="text-xl opacity-90">/ano</span>
+                  <span className="text-5xl font-bold">{currencySymbol} {price}</span>
+                  <span className="text-xl opacity-90">/{billingPeriod === "annual" ? "ano" : "mês"}</span>
                 </div>
-                <p className="text-emerald-100 text-lg">
-                  Apenas {currencySymbol} {monthlyEquivalent}/mês
-                </p>
-                <div className="pt-4 border-t border-white/20">
-                  <p className="text-sm opacity-90">
-                    💰 Economize {currencySymbol} {currency === "BRL" ? "300" : currency === "USD" ? "60" : "55"} comparado ao plano mensal
+                {billingPeriod === "annual" && (
+                  <p className="text-emerald-100 text-lg">
+                    Apenas {currencySymbol} {monthlyEquivalent}/mês
                   </p>
-                </div>
+                )}
+                {billingPeriod === "annual" && (
+                  <div className="pt-4 border-t border-white/20">
+                    <p className="text-sm opacity-90">
+                      💰 Economize {currencySymbol} {savingsAmount} comparado ao plano mensal
+                    </p>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -137,7 +223,6 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
               <div className="space-y-3">
                 {[
                   "Plano alimentar personalizado baseado no seu perfil",
-                  "Análise ilimitada de fotos de comida com IA",
                   "Contador automático de calorias e macros",
                   "Receitas saudáveis exclusivas",
                   "Acompanhamento diário de progresso",
@@ -181,6 +266,19 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                   </p>
                 </div>
 
+                {/* Error Message */}
+                {paymentError && (
+                  <Card className="p-4 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700">
+                    <div className="flex gap-3">
+                      <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                      <div className="text-sm text-red-900 dark:text-red-100">
+                        <p className="font-semibold mb-1">Erro no Pagamento</p>
+                        <p className="text-red-700 dark:text-red-300">{paymentError}</p>
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
                 {/* Payment Method */}
                 <div>
                   <Label className="text-base font-semibold mb-3 block dark:text-white">
@@ -198,6 +296,18 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                         <span className="font-medium dark:text-white">Cartão de Crédito</span>
                       </Label>
                     </div>
+                    
+                    <div className="flex items-center space-x-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <RadioGroupItem value="paypal" id="paypal" />
+                      <Label htmlFor="paypal" className="flex items-center gap-2 cursor-pointer flex-1">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#00457C">
+                          <path d="M20.067 8.478c.492.88.556 2.014.3 3.327-.74 3.806-3.276 5.12-6.514 5.12h-.5a.805.805 0 0 0-.794.68l-.04.22-.63 3.993-.028.15a.805.805 0 0 1-.794.68H7.72a.483.483 0 0 1-.477-.558L7.418 21h1.518l.95-6.02h1.385c4.678 0 7.75-2.203 8.796-6.502z"/>
+                          <path d="M2.379 0h7.99c1.384 0 2.485.296 3.089 1.03.581.706.76 1.747.536 3.101-.675 4.08-3.82 6.207-8.32 6.207H3.447L2.379 0z" fill="#0079C1"/>
+                        </svg>
+                        <span className="font-medium dark:text-white">PayPal</span>
+                      </Label>
+                    </div>
+
                     {currency === "BRL" && (
                       <div className="flex items-center space-x-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700">
                         <RadioGroupItem value="pix" id="pix" />
@@ -279,6 +389,30 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                   </div>
                 )}
 
+                {paymentMethod === "paypal" && (
+                  <Card className="p-6 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-700">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="#00457C">
+                          <path d="M20.067 8.478c.492.88.556 2.014.3 3.327-.74 3.806-3.276 5.12-6.514 5.12h-.5a.805.805 0 0 0-.794.68l-.04.22-.63 3.993-.028.15a.805.805 0 0 1-.794.68H7.72a.483.483 0 0 1-.477-.558L7.418 21h1.518l.95-6.02h1.385c4.678 0 7.75-2.203 8.796-6.502z"/>
+                          <path d="M2.379 0h7.99c1.384 0 2.485.296 3.089 1.03.581.706.76 1.747.536 3.101-.675 4.08-3.82 6.207-8.32 6.207H3.447L2.379 0z" fill="#0079C1"/>
+                        </svg>
+                        <div>
+                          <p className="font-semibold text-blue-900 dark:text-blue-100">
+                            Pagamento via PayPal
+                          </p>
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            Rápido, seguro e aceito mundialmente
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300">
+                        Após clicar em "Finalizar", você será redirecionado para o PayPal para completar o pagamento de forma segura.
+                      </p>
+                    </div>
+                  </Card>
+                )}
+
                 {paymentMethod === "pix" && currency === "BRL" && (
                   <Card className="p-6 bg-teal-50 dark:bg-teal-900/30 border-2 border-teal-200 dark:border-teal-700">
                     <div className="space-y-4">
@@ -289,7 +423,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                             Pagamento via PIX
                           </p>
                           <p className="text-sm text-teal-700 dark:text-teal-300">
-                            Ganhe 5% de desconto - R$ {(annualPrice * 0.95).toFixed(2)}
+                            Ganhe 5% de desconto - R$ {(price * 0.95).toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -337,13 +471,13 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                 {/* Summary */}
                 <div className="border-t dark:border-gray-600 pt-6 space-y-3">
                   <div className="flex justify-between text-gray-700 dark:text-gray-300">
-                    <span>Plano Anual</span>
-                    <span>{currencySymbol} {annualPrice}</span>
+                    <span>Plano {billingPeriod === "annual" ? "Anual" : "Mensal"}</span>
+                    <span>{currencySymbol} {price}</span>
                   </div>
                   {paymentMethod === "pix" && currency === "BRL" && (
                     <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
                       <span>Desconto PIX (5%)</span>
-                      <span>- {currencySymbol} {(annualPrice * 0.05).toFixed(2)}</span>
+                      <span>- {currencySymbol} {(price * 0.05).toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white pt-3 border-t dark:border-gray-600">
@@ -351,8 +485,8 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                     <span>
                       {currencySymbol}{" "}
                       {paymentMethod === "pix" && currency === "BRL"
-                        ? (annualPrice * 0.95).toFixed(2)
-                        : annualPrice}
+                        ? (price * 0.95).toFixed(2)
+                        : price}
                     </span>
                   </div>
                 </div>
@@ -366,7 +500,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                   {processing ? (
                     <span className="flex items-center gap-2">
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Processando...
+                      Processando Pagamento...
                     </span>
                   ) : (
                     "Finalizar Pagamento"
