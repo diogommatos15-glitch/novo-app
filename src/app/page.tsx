@@ -19,6 +19,9 @@ export default function Home() {
   const [appState, setAppState] = useState<AppState>("login");
   const [userData, setUserData] = useState<any>(null);
   const [loginData, setLoginData] = useState({ emailOrPhone: "" });
+  const [showExistingAccount, setShowExistingAccount] = useState(false);
+  const [existingContact, setExistingContact] = useState("");
+  const [existingAccountError, setExistingAccountError] = useState("");
 
   const handleQuestionnaireComplete = (data: any) => {
     setUserData(data);
@@ -63,6 +66,22 @@ export default function Home() {
     const hasDigits = /\d/.test(value);
     if (hasDigits) return "phone";
     return "unknown";
+  };
+
+  const handleExistingAccountLogin = () => {
+    const contact = existingContact.trim();
+    if (!contact || !isValidContact(contact)) {
+      setExistingAccountError("Por favor, insira um email ou telefone válido.");
+      return;
+    }
+    const savedAccounts = JSON.parse(localStorage.getItem("nutrilife_accounts") || "{}");
+    const account = savedAccounts[contact];
+    if (account && account.hasPaid) {
+      setUserData(account);
+      setAppState("dashboard");
+    } else {
+      setExistingAccountError("Nenhuma conta encontrada com este email/telefone. Verifique os dados ou crie uma nova conta.");
+    }
   };
 
   const contactType = getContactType(loginData.emailOrPhone);
@@ -179,8 +198,82 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Divisor */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t dark:border-gray-600" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="bg-white dark:bg-gray-800 px-3 text-gray-500 dark:text-gray-400">
+                ou
+              </span>
+            </div>
+          </div>
+
+          {/* Botão já tenho conta */}
+          {!showExistingAccount ? (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => { setShowExistingAccount(true); setExistingAccountError(""); }}
+              className="w-full py-6 text-base border-2 border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+            >
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              Já tenho uma conta
+            </Button>
+          ) : (
+            <div className="space-y-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-700">
+              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-200">
+                Insira o email ou telefone da sua conta:
+              </p>
+              <div className="relative">
+                <Input
+                  type="text"
+                  placeholder="exemplo@email.com ou +351 912 345 678"
+                  value={existingContact}
+                  onChange={(e) => { setExistingContact(e.target.value); setExistingAccountError(""); }}
+                  onKeyDown={(e) => e.key === "Enter" && handleExistingAccountLogin()}
+                  className="pl-10 py-5 dark:bg-gray-700 dark:border-gray-600"
+                />
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  {getContactType(existingContact) === "email" ? (
+                    <Mail className="w-4 h-4" />
+                  ) : getContactType(existingContact) === "phone" ? (
+                    <Phone className="w-4 h-4" />
+                  ) : (
+                    <Globe className="w-4 h-4" />
+                  )}
+                </div>
+              </div>
+
+              {existingAccountError && (
+                <p className="text-sm text-red-500 dark:text-red-400 flex items-center gap-1">
+                  <X className="w-4 h-4 flex-shrink-0" />
+                  {existingAccountError}
+                </p>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleExistingAccountLogin}
+                  className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Entrar no Dashboard
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => { setShowExistingAccount(false); setExistingContact(""); setExistingAccountError(""); }}
+                  className="text-gray-500 dark:text-gray-400"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Exemplos de formatos aceitos */}
-          <div className="pt-4 border-t dark:border-gray-700">
+          <div className="pt-2 border-t dark:border-gray-700">
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2">
               Aceito em todo o mundo 🌍
             </p>

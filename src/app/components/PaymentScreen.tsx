@@ -59,6 +59,16 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
     setProcessing(true);
     setTimeout(() => {
       setProcessing(false);
+      // Salva no localStorage que o usuário já pagou
+      if (userData?.contact) {
+        const savedAccounts = JSON.parse(localStorage.getItem("nutrilife_accounts") || "{}");
+        savedAccounts[userData.contact] = {
+          ...userData,
+          paidAt: new Date().toISOString(),
+          hasPaid: true,
+        };
+        localStorage.setItem("nutrilife_accounts", JSON.stringify(savedAccounts));
+      }
       // Só avança se o pagamento for bem-sucedido
       onComplete();
     }, 2000);
