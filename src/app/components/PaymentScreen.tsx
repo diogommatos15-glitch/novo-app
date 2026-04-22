@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,9 @@ import {
   DollarSign, Euro, Phone, AlertCircle, Clock, RefreshCw
 } from "lucide-react";
 
+// Carrega Stripe Elements dinamicamente (sem SSR) para evitar erros
+const StripeCardForm = dynamic(() => import("./StripeCardForm"), { ssr: false });
+
 interface PaymentScreenProps {
   userData: any;
   onComplete: () => void;
@@ -20,6 +24,7 @@ interface PaymentScreenProps {
 type PaymentStatus =
   | "idle"
   | "processing"
+  | "waiting_card"
   | "waiting_mbway"
   | "waiting_pix"
   | "succeeded"
@@ -29,13 +34,15 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
   const [currency, setCurrency] = useState<"BRL" | "USD" | "EUR">("EUR");
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "annual">("annual");
   const [paymentMethod, setPaymentMethod] = useState("mbway");
-  const [cardData, setCardData] = useState({ number: "", name: "", expiry: "", cvv: "" });
+  const [cardholderName, setCardholderName] = useState("");
   const [mbwayPhone, setMbwayPhone] = useState("");
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("idle");
   const [paymentError, setPaymentError] = useState("");
+  const [clientSecret, setClientSecret] = useState("");
   const [paymentIntentId, setPaymentIntentId] = useState("");
   const [pixData, setPixData] = useState<{ qrCode?: string; code?: string } | null>(null);
   const [pollCount, setPollCount] = useState(0);
+  const [cardProcessing, setCardProcessing] = useState(false);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
   // Preços base em cada moeda
@@ -47,14 +54,19 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
 
   const currentPrice = prices[currency];
   const price = billingPeriod === "annual" ? currentPrice.annual : currentPrice.monthly;
-  const monthlyEquivalent = billingPeriod === "annual" ? (currentPrice.annual / 12).toFixed(2) : currentPrice.monthly.toFixed(2);
+  const monthlyEquivalent = billingPeriod === "annual"
+    ? (currentPrice.annual / 12).toFixed(2)
+    : currentPrice.monthly.toFixed(2);
   const currencySymbol = currentPrice.symbol;
-  const savingsAmount = billingPeriod === "annual" ? (currentPrice.monthly * 12 - currentPrice.annual).toFixed(2) : "0";
-  const savingsPercentage = billingPeriod === "annual" ? Math.round(((currentPrice.monthly * 12 - currentPrice.annual) / (currentPrice.monthly * 12)) * 100) : 0;
+  const savingsAmount = billingPeriod === "annual"
+    ? (currentPrice.monthly * 12 - currentPrice.annual).toFixed(2)
+    : "0";
+  const savingsPercentage = billingPeriod === "annual"
+    ? Math.round(((currentPrice.monthly * 12 - currentPrice.annual) / (currentPrice.monthly * 12)) * 100)
+    : 0;
 
   const finalPrice = paymentMethod === "pix" && currency === "BRL" ? price * 0.95 : price;
 
-  // Para polling de status MBWay / PIX
   const stopPolling = () => {
     if (pollRef.current) {
       clearInterval(pollRef.current);
@@ -62,24 +74,28 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
     }
   };
 
-  useEffect(() => {
-    return () => stopPolling();
-  }, []);
+  useEffect(() => () => stopPolling(), []);
+
+  const saveAndComplete = () => {
+    if (userData?.contact) {
+      const accounts = JSON.parse(localStorage.getItem("nutrilife_accounts") || "{}");
+      accounts[userData.contact] = { ...userData, paidAt: new Date().toISOString(), hasPaid: true };
+      localStorage.setItem("nutrilife_accounts", JSON.stringify(accounts));
+    }
+    setTimeout(() => onComplete(), 1800);
+  };
 
   const startPolling = (intentId: string) => {
     let count = 0;
     pollRef.current = setInterval(async () => {
       count++;
       setPollCount(count);
-
-      // Timeout após 3 minutos (36 tentativas × 5s)
       if (count > 36) {
         stopPolling();
         setPaymentStatus("failed");
         setPaymentError("Tempo expirado. O pagamento não foi confirmado. Tente novamente.");
         return;
       }
-
       try {
         const res = await fetch("/api/check-payment-status", {
           method: "POST",
@@ -87,35 +103,22 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
           body: JSON.stringify({ paymentIntentId: intentId }),
         });
         const data = await res.json();
-
         if (data.status === "succeeded") {
           stopPolling();
           setPaymentStatus("succeeded");
-          // Salva localmente que pagou
-          if (userData?.contact) {
-            const accounts = JSON.parse(localStorage.getItem("nutrilife_accounts") || "{}");
-            accounts[userData.contact] = { ...userData, paidAt: new Date().toISOString(), hasPaid: true };
-            localStorage.setItem("nutrilife_accounts", JSON.stringify(accounts));
-          }
-          setTimeout(() => onComplete(), 2000);
+          saveAndComplete();
         } else if (data.status === "canceled" || data.status === "requires_payment_method") {
           stopPolling();
           setPaymentStatus("failed");
           setPaymentError("Pagamento cancelado ou recusado. Tente novamente.");
         }
-      } catch {
-        // Continua a tentar
-      }
+      } catch { /* continua */ }
     }, 5000);
   };
 
   const validate = (): string => {
-    if (paymentMethod === "credit-card") {
-      if (!cardData.number || !cardData.name || !cardData.expiry || !cardData.cvv)
-        return "Por favor, preencha todos os dados do cartão.";
-      if (cardData.number.replace(/\s/g, "").length < 13) return "Número do cartão inválido.";
-      if (cardData.cvv.length < 3) return "CVV inválido.";
-    }
+    if (paymentMethod === "credit-card" && !cardholderName.trim())
+      return "Por favor, insira o nome do titular do cartão.";
     if (paymentMethod === "mbway") {
       const cleaned = mbwayPhone.replace(/[\s\-\(\)]/g, "");
       if (!cleaned || !/^\+?[0-9]{9,15}$/.test(cleaned))
@@ -124,23 +127,49 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
     return "";
   };
 
-  const handlePayment = async () => {
+  // Para cartão: apenas cria o PaymentIntent e expõe o clientSecret ao Elements
+  const handleInitCardPayment = async () => {
     setPaymentError("");
     const err = validate();
     if (err) { setPaymentError(err); return; }
 
     setPaymentStatus("processing");
-
     try {
-      const body: any = {
-        amount: finalPrice,
-        currency,
-        paymentMethod,
-        billingPeriod,
-      };
+      const res = await fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: finalPrice,
+          currency,
+          paymentMethod: "credit-card",
+          billingPeriod,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setPaymentStatus("failed");
+        setPaymentError(data.error || "Erro ao iniciar pagamento. Tente novamente.");
+        return;
+      }
+      setClientSecret(data.clientSecret);
+      setPaymentIntentId(data.paymentIntentId);
+      setPaymentStatus("waiting_card");
+    } catch (e: any) {
+      setPaymentStatus("failed");
+      setPaymentError(e.message || "Erro de conexão. Tente novamente.");
+    }
+  };
 
+  // Para MBWay e PIX: envia e faz polling
+  const handleOtherPayment = async () => {
+    setPaymentError("");
+    const err = validate();
+    if (err) { setPaymentError(err); return; }
+
+    setPaymentStatus("processing");
+    try {
+      const body: any = { amount: finalPrice, currency, paymentMethod, billingPeriod };
       if (paymentMethod === "mbway") {
-        // Normaliza o número — Stripe exige formato E.164 (ex: +351912345678)
         let phone = mbwayPhone.replace(/[\s\-\(\)]/g, "");
         if (!phone.startsWith("+")) phone = "+351" + phone;
         body.phone = phone;
@@ -151,9 +180,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-
       const data = await res.json();
-
       if (!res.ok || data.error) {
         setPaymentStatus("failed");
         setPaymentError(data.error || "Erro ao iniciar pagamento. Tente novamente.");
@@ -161,7 +188,6 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
       }
 
       setPaymentIntentId(data.paymentIntentId);
-
       if (paymentMethod === "mbway") {
         setPaymentStatus("waiting_mbway");
         startPolling(data.paymentIntentId);
@@ -169,21 +195,6 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
         setPaymentStatus("waiting_pix");
         setPixData({ qrCode: data.pixQrCode, code: data.pixCode });
         startPolling(data.paymentIntentId);
-      } else {
-        // Cartão: status pode ser imediato
-        if (data.status === "succeeded") {
-          setPaymentStatus("succeeded");
-          if (userData?.contact) {
-            const accounts = JSON.parse(localStorage.getItem("nutrilife_accounts") || "{}");
-            accounts[userData.contact] = { ...userData, paidAt: new Date().toISOString(), hasPaid: true };
-            localStorage.setItem("nutrilife_accounts", JSON.stringify(accounts));
-          }
-          setTimeout(() => onComplete(), 2000);
-        } else {
-          // Pode precisar de confirmação adicional (3DS, etc.)
-          setPaymentStatus("waiting_mbway"); // reutiliza o ecrã de "aguardando"
-          startPolling(data.paymentIntentId);
-        }
       }
     } catch (e: any) {
       setPaymentStatus("failed");
@@ -191,16 +202,24 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
     }
   };
 
+  const handlePayment = () => {
+    if (paymentMethod === "credit-card") handleInitCardPayment();
+    else handleOtherPayment();
+  };
+
   const handleRetry = () => {
     stopPolling();
     setPaymentStatus("idle");
     setPaymentError("");
+    setClientSecret("");
     setPaymentIntentId("");
     setPixData(null);
     setPollCount(0);
+    setCardProcessing(false);
   };
 
-  // Ecrã de sucesso
+  // --- Ecrãs de estado ---
+
   if (paymentStatus === "succeeded") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-emerald-50 dark:bg-gray-900">
@@ -215,7 +234,6 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
     );
   }
 
-  // Ecrã aguardando MBWay
   if (paymentStatus === "waiting_mbway") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-blue-50 dark:bg-gray-900 p-4">
@@ -225,29 +243,24 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
           </div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Aguardando Confirmação</h2>
           <p className="text-gray-600 dark:text-gray-300">
-            Uma notificação foi enviada para o número <strong>{mbwayPhone}</strong>.
-            <br /><br />
-            Abra o seu MB WAY e aceite o pagamento de <strong>{currencySymbol} {finalPrice.toFixed(2)}</strong>.
+            Uma notificação foi enviada para <strong>{mbwayPhone}</strong>.<br /><br />
+            Abra o MB WAY e aceite o pagamento de <strong>{currencySymbol} {finalPrice.toFixed(2)}</strong>.
           </p>
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <Clock className="w-4 h-4" />
-            <span>A verificar pagamento... ({Math.max(0, 180 - pollCount * 5)}s restantes)</span>
+            <span>A verificar... ({Math.max(0, 180 - pollCount * 5)}s restantes)</span>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={handleRetry} className="flex-1">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Cancelar
-            </Button>
-          </div>
+          <Button variant="outline" onClick={handleRetry} className="w-full">
+            <RefreshCw className="w-4 h-4 mr-2" />Cancelar
+          </Button>
           <p className="text-xs text-gray-400 dark:text-gray-500">
-            Não recebeu a notificação? Certifique-se que o número está correto e tem saldo disponível.
+            Não recebeu? Certifique-se de que o número está correto e tem saldo disponível.
           </p>
         </Card>
       </div>
     );
   }
 
-  // Ecrã aguardando PIX
   if (paymentStatus === "waiting_pix") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-teal-50 dark:bg-gray-900 p-4">
@@ -262,32 +275,23 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
           {pixData?.code && (
             <div className="space-y-2">
               <p className="text-sm text-gray-600 dark:text-gray-400">Ou copie o código PIX:</p>
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 text-xs text-gray-800 dark:text-gray-200 break-all font-mono">
-                {pixData.code}
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => navigator.clipboard.writeText(pixData.code || "")}
-              >
+              <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-3 text-xs text-gray-800 dark:text-gray-200 break-all font-mono">{pixData.code}</div>
+              <Button size="sm" variant="outline" onClick={() => navigator.clipboard.writeText(pixData?.code || "")}>
                 Copiar Código PIX
               </Button>
             </div>
           )}
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <Clock className="w-4 h-4" />
-            <span>A aguardar confirmação do pagamento...</span>
+            <Clock className="w-4 h-4" /><span>A aguardar confirmação...</span>
           </div>
           <Button variant="outline" onClick={handleRetry} className="w-full">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Cancelar
+            <RefreshCw className="w-4 h-4 mr-2" />Cancelar
           </Button>
         </Card>
       </div>
     );
   }
 
-  // Ecrã de erro
   if (paymentStatus === "failed") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-50 dark:bg-gray-900 p-4">
@@ -305,17 +309,16 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
     );
   }
 
-  // Formulário principal
+  // --- Formulário principal ---
   return (
-    <div className="min-h-screen bg-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-8 transition-colors">
+    <div className="min-h-screen bg-emerald-50 dark:bg-gray-900 py-8 transition-colors">
       <div className="container mx-auto px-4 max-w-6xl">
         <Button variant="ghost" onClick={onBack} className="mb-6 flex items-center gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Voltar ao Questionário
+          <ArrowLeft className="w-4 h-4" />Voltar ao Questionário
         </Button>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Esquerda — Detalhes do Plano */}
+          {/* Esquerda — Plano */}
           <div className="space-y-6">
             <div>
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Escolha Seu Plano Premium</h1>
@@ -325,11 +328,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
             {/* Período */}
             <Card className="p-6 bg-white dark:bg-gray-800 dark:border-gray-700 shadow-lg">
               <Label className="text-base font-semibold mb-3 block dark:text-white">Período de Cobrança:</Label>
-              <RadioGroup
-                value={billingPeriod}
-                onValueChange={(v) => setBillingPeriod(v as "monthly" | "annual")}
-                className="grid grid-cols-2 gap-4"
-              >
+              <RadioGroup value={billingPeriod} onValueChange={(v) => setBillingPeriod(v as "monthly" | "annual")} className="grid grid-cols-2 gap-4">
                 <div className={`relative border-2 rounded-xl p-5 cursor-pointer transition-all ${billingPeriod === "monthly" ? "border-emerald-600 bg-emerald-50 dark:bg-emerald-900/30" : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`}>
                   <RadioGroupItem value="monthly" id="monthly" className="sr-only" />
                   <Label htmlFor="monthly" className="cursor-pointer text-center block space-y-2">
@@ -357,9 +356,9 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                 value={currency}
                 onValueChange={(v) => {
                   setCurrency(v as "BRL" | "USD" | "EUR");
-                  if (v !== "EUR") setPaymentMethod("credit-card");
                   if (v === "EUR") setPaymentMethod("mbway");
-                  if (v === "BRL") setPaymentMethod("pix");
+                  else if (v === "BRL") setPaymentMethod("pix");
+                  else setPaymentMethod("credit-card");
                 }}
                 className="grid grid-cols-3 gap-3"
               >
@@ -372,9 +371,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                         {c === "USD" && <><DollarSign className="w-5 h-5 dark:text-white" /><span className="font-bold text-lg dark:text-white">USD</span></>}
                         {c === "EUR" && <><Euro className="w-5 h-5 dark:text-white" /><span className="font-bold text-lg dark:text-white">EUR</span></>}
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {c === "BRL" ? "Real" : c === "USD" ? "Dólar" : "Euro"}
-                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">{c === "BRL" ? "Real" : c === "USD" ? "Dólar" : "Euro"}</div>
                     </Label>
                   </div>
                 ))}
@@ -388,9 +385,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                   <span className="text-5xl font-bold">{currencySymbol} {finalPrice % 1 === 0 ? finalPrice : finalPrice.toFixed(2)}</span>
                   <span className="text-xl opacity-90">/{billingPeriod === "annual" ? "ano" : "mês"}</span>
                 </div>
-                {billingPeriod === "annual" && (
-                  <p className="text-emerald-100 text-lg">Apenas {currencySymbol} {monthlyEquivalent}/mês</p>
-                )}
+                {billingPeriod === "annual" && <p className="text-emerald-100 text-lg">Apenas {currencySymbol} {monthlyEquivalent}/mês</p>}
                 {billingPeriod === "annual" && (
                   <div className="pt-4 border-t border-white/20">
                     <p className="text-sm opacity-90">Economize {currencySymbol} {savingsAmount} comparado ao plano mensal</p>
@@ -422,21 +417,21 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
             </Card>
           </div>
 
-          {/* Direita — Formulário de Pagamento */}
+          {/* Direita — Formulário */}
           <div className="space-y-6">
             <Card className="p-8 shadow-xl dark:bg-gray-800 dark:border-gray-700">
               <div className="space-y-6">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Informações de Pagamento</h2>
-                  <p className="text-gray-600 dark:text-gray-300">Complete seu cadastro e comece hoje</p>
+                  <p className="text-gray-600 dark:text-gray-300">Complete o seu cadastro e comece hoje</p>
                 </div>
 
                 {paymentError && (
                   <Card className="p-4 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-700">
                     <div className="flex gap-3">
                       <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                      <div className="text-sm text-red-900 dark:text-red-100">
-                        <p className="font-semibold mb-1">Erro no Pagamento</p>
+                      <div className="text-sm">
+                        <p className="font-semibold text-red-900 dark:text-red-100 mb-1">Erro no Pagamento</p>
                         <p className="text-red-700 dark:text-red-300">{paymentError}</p>
                       </div>
                     </div>
@@ -447,14 +442,17 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                 <div>
                   <Label className="text-base font-semibold mb-3 block dark:text-white">Método de Pagamento</Label>
                   <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
-                    <div className={`flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-all ${paymentMethod === "credit-card" ? "border-emerald-500" : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`}>
+                    {/* Cartão — sempre disponível */}
+                    <div className={`flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-all ${paymentMethod === "credit-card" ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20" : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`}>
                       <RadioGroupItem value="credit-card" id="credit-card" />
                       <Label htmlFor="credit-card" className="flex items-center gap-2 cursor-pointer flex-1">
                         <CreditCard className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                         <span className="font-medium dark:text-white">Cartão de Crédito</span>
+                        <span className="text-xs bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full ml-auto">Mundial</span>
                       </Label>
                     </div>
 
+                    {/* MBWay — só EUR */}
                     {currency === "EUR" && (
                       <div className={`flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-all ${paymentMethod === "mbway" ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`}>
                         <RadioGroupItem value="mbway" id="mbway" />
@@ -466,6 +464,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                       </div>
                     )}
 
+                    {/* PIX — só BRL */}
                     {currency === "BRL" && (
                       <div className={`flex items-center space-x-3 border-2 rounded-lg p-4 cursor-pointer transition-all ${paymentMethod === "pix" ? "border-teal-500 bg-teal-50 dark:bg-teal-900/20" : "border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"}`}>
                         <RadioGroupItem value="pix" id="pix" />
@@ -479,39 +478,79 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                   </RadioGroup>
                 </div>
 
-                {/* Campos Cartão */}
+                {/* Formulário Cartão com Stripe Elements */}
                 {paymentMethod === "credit-card" && (
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="cardNumber" className="dark:text-white">Número do Cartão</Label>
-                      <Input id="cardNumber" placeholder="1234 5678 9012 3456" value={cardData.number}
-                        onChange={(e) => setCardData({ ...cardData, number: e.target.value })}
-                        maxLength={19} className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                      <Label htmlFor="cardName" className="dark:text-white">Nome do Titular</Label>
+                      <Input
+                        id="cardName"
+                        placeholder="Nome como está no cartão"
+                        value={cardholderName}
+                        onChange={(e) => setCardholderName(e.target.value)}
+                        className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      />
                     </div>
-                    <div>
-                      <Label htmlFor="cardName" className="dark:text-white">Nome no Cartão</Label>
-                      <Input id="cardName" placeholder="Nome como está no cartão" value={cardData.name}
-                        onChange={(e) => setCardData({ ...cardData, name: e.target.value })}
-                        className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="expiry" className="dark:text-white">Validade</Label>
-                        <Input id="expiry" placeholder="MM/AA" value={cardData.expiry}
-                          onChange={(e) => setCardData({ ...cardData, expiry: e.target.value })}
-                          maxLength={5} className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
-                      </div>
-                      <div>
-                        <Label htmlFor="cvv" className="dark:text-white">CVV</Label>
-                        <Input id="cvv" placeholder="123" value={cardData.cvv}
-                          onChange={(e) => setCardData({ ...cardData, cvv: e.target.value })}
-                          maxLength={4} className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
-                      </div>
-                    </div>
+
+                    {/* Se já temos o clientSecret, mostra o Stripe Elements */}
+                    {paymentStatus === "waiting_card" && clientSecret ? (
+                      <StripeCardForm
+                        clientSecret={clientSecret}
+                        cardholderName={cardholderName}
+                        finalPrice={finalPrice}
+                        currencySymbol={currencySymbol}
+                        processing={cardProcessing}
+                        setProcessing={setCardProcessing}
+                        onSuccess={() => {
+                          setPaymentStatus("succeeded");
+                          saveAndComplete();
+                        }}
+                        onError={(msg) => {
+                          setPaymentStatus("failed");
+                          setPaymentError(msg);
+                        }}
+                      />
+                    ) : (
+                      <>
+                        <div className="space-y-3 opacity-60 pointer-events-none select-none">
+                          <div>
+                            <Label className="dark:text-white text-sm font-medium">Número do Cartão</Label>
+                            <div className="mt-1 border rounded-lg px-4 py-3 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-gray-400 text-sm">
+                              Clique em "Prosseguir" para inserir os dados do cartão de forma segura
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label className="dark:text-white text-sm font-medium">Validade</Label>
+                              <div className="mt-1 border rounded-lg px-4 py-3 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-gray-400 text-sm">MM / AA</div>
+                            </div>
+                            <div>
+                              <Label className="dark:text-white text-sm font-medium">CVV</Label>
+                              <div className="mt-1 border rounded-lg px-4 py-3 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-gray-400 text-sm">•••</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={handlePayment}
+                          disabled={paymentStatus === "processing"}
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6"
+                        >
+                          {paymentStatus === "processing" ? (
+                            <span className="flex items-center gap-2">
+                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              A preparar pagamento seguro...
+                            </span>
+                          ) : (
+                            "Prosseguir para Pagamento Seguro"
+                          )}
+                        </Button>
+                      </>
+                    )}
                   </div>
                 )}
 
-                {/* Campo MB WAY */}
+                {/* MB WAY */}
                 {paymentMethod === "mbway" && currency === "EUR" && (
                   <Card className="p-6 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-700">
                     <div className="space-y-4">
@@ -519,7 +558,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                         <Phone className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                         <div>
                           <p className="font-semibold text-blue-900 dark:text-blue-100">Pagamento via MB WAY</p>
-                          <p className="text-sm text-blue-700 dark:text-blue-300">Receberá uma notificação no seu telemóvel</p>
+                          <p className="text-sm text-blue-700 dark:text-blue-300">Receberá uma notificação real no seu telemóvel</p>
                         </div>
                       </div>
                       <div>
@@ -527,13 +566,8 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                         <Input id="mbwayPhone" placeholder="+351 912 345 678" value={mbwayPhone}
                           onChange={(e) => setMbwayPhone(e.target.value)}
                           className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                          Insira o número associado à sua conta MB WAY (com indicativo +351)
-                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">Insira com indicativo (+351 para Portugal)</p>
                       </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">
-                        Após clicar em "Finalizar", receberá uma notificação real no seu telemóvel para confirmar o pagamento de <strong>{currencySymbol} {finalPrice.toFixed(2)}</strong>.
-                      </p>
                     </div>
                   </Card>
                 )}
@@ -545,18 +579,14 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                       <Sparkles className="w-6 h-6 text-teal-600 dark:text-teal-400" />
                       <div>
                         <p className="font-semibold text-teal-900 dark:text-teal-100">Pagamento via PIX</p>
-                        <p className="text-sm text-teal-700 dark:text-teal-300">
-                          Com 5% de desconto — R$ {finalPrice.toFixed(2)}
-                        </p>
+                        <p className="text-sm text-teal-700 dark:text-teal-300">Com 5% de desconto — R$ {finalPrice.toFixed(2)}</p>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-3">
-                      Após clicar em "Finalizar", receberá o QR Code para pagamento instantâneo.
-                    </p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-3">Após confirmar, receberá o QR Code para pagamento instantâneo.</p>
                   </Card>
                 )}
 
-                {/* Resumo */}
+                {/* Resumo + Botão (para mbway e pix) */}
                 <div className="border-t dark:border-gray-600 pt-6 space-y-3">
                   <div className="flex justify-between text-gray-700 dark:text-gray-300">
                     <span>Plano {billingPeriod === "annual" ? "Anual" : "Mensal"}</span>
@@ -574,23 +604,26 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                   </div>
                 </div>
 
-                <Button
-                  onClick={handlePayment}
-                  disabled={paymentStatus === "processing"}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6"
-                >
-                  {paymentStatus === "processing" ? (
-                    <span className="flex items-center gap-2">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      A processar...
-                    </span>
-                  ) : (
-                    "Finalizar Pagamento"
-                  )}
-                </Button>
+                {/* Botão apenas para mbway e pix (cartão tem seu próprio botão) */}
+                {paymentMethod !== "credit-card" && (
+                  <Button
+                    onClick={handlePayment}
+                    disabled={paymentStatus === "processing"}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6"
+                  >
+                    {paymentStatus === "processing" ? (
+                      <span className="flex items-center gap-2">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        A processar...
+                      </span>
+                    ) : (
+                      "Finalizar Pagamento"
+                    )}
+                  </Button>
+                )}
 
                 <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                  Ao finalizar, você concorda com nossos Termos de Uso e Política de Privacidade
+                  Ao finalizar, você concorda com os nossos Termos de Uso e Política de Privacidade
                 </p>
               </div>
             </Card>
@@ -601,7 +634,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                 <div className="text-sm text-blue-900 dark:text-blue-100">
                   <p className="font-semibold mb-1">Pagamento 100% Seguro via Stripe</p>
                   <p className="text-blue-700 dark:text-blue-300">
-                    Processado pelo Stripe, líder mundial em pagamentos. Os seus dados são criptografados.
+                    Processado pelo Stripe — líder mundial em pagamentos. Aceita cartões Visa, Mastercard, American Express e mais de 135 moedas.
                   </p>
                 </div>
               </div>
