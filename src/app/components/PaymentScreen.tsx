@@ -117,8 +117,6 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
   };
 
   const validate = (): string => {
-    if (paymentMethod === "credit-card" && !cardholderName.trim())
-      return "Por favor, insira o nome do titular do cartão.";
     if (paymentMethod === "mbway") {
       const cleaned = mbwayPhone.replace(/[\s\-\(\)]/g, "");
       if (!cleaned || !/^\+?[0-9]{9,15}$/.test(cleaned))
@@ -482,7 +480,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                 {paymentMethod === "credit-card" && (
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="cardName" className="dark:text-white">Nome do Titular</Label>
+                      <Label htmlFor="cardName" className="dark:text-white">Nome do Titular <span className="text-gray-400 font-normal text-xs">(opcional)</span></Label>
                       <Input
                         id="cardName"
                         placeholder="Nome como está no cartão"
@@ -511,41 +509,20 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                         }}
                       />
                     ) : (
-                      <>
-                        <div className="space-y-3 opacity-60 pointer-events-none select-none">
-                          <div>
-                            <Label className="dark:text-white text-sm font-medium">Número do Cartão</Label>
-                            <div className="mt-1 border rounded-lg px-4 py-3 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-gray-400 text-sm">
-                              Clique em "Prosseguir" para inserir os dados do cartão de forma segura
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <Label className="dark:text-white text-sm font-medium">Validade</Label>
-                              <div className="mt-1 border rounded-lg px-4 py-3 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-gray-400 text-sm">MM / AA</div>
-                            </div>
-                            <div>
-                              <Label className="dark:text-white text-sm font-medium">CVV</Label>
-                              <div className="mt-1 border rounded-lg px-4 py-3 bg-gray-50 dark:bg-gray-700 dark:border-gray-600 text-gray-400 text-sm">•••</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <Button
-                          onClick={handlePayment}
-                          disabled={paymentStatus === "processing"}
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6"
-                        >
-                          {paymentStatus === "processing" ? (
-                            <span className="flex items-center gap-2">
-                              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              A preparar pagamento seguro...
-                            </span>
-                          ) : (
-                            "Prosseguir para Pagamento Seguro"
-                          )}
-                        </Button>
-                      </>
+                      <Button
+                        onClick={handlePayment}
+                        disabled={paymentStatus === "processing"}
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6"
+                      >
+                        {paymentStatus === "processing" ? (
+                          <span className="flex items-center gap-2">
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            A preparar pagamento seguro...
+                          </span>
+                        ) : (
+                          "Prosseguir para Pagamento Seguro"
+                        )}
+                      </Button>
                     )}
                   </div>
                 )}
