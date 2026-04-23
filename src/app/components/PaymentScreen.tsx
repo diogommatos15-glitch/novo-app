@@ -499,6 +499,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
                         currencySymbol={currencySymbol}
                         processing={cardProcessing}
                         setProcessing={setCardProcessing}
+                        publishableKey={process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
                         onSuccess={() => {
                           setPaymentStatus("succeeded");
                           saveAndComplete();

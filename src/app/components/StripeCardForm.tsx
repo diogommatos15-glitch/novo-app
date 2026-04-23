@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -12,12 +11,6 @@ import {
 } from "@stripe/react-stripe-js";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { AlertCircle } from "lucide-react";
-import { Card } from "@/components/ui/card";
-
-// Inicializa Stripe com a chave pública (do env)
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
 
 const ELEMENT_OPTIONS = {
   style: {
@@ -56,17 +49,24 @@ function CardFormInner({
   const elements = useElements();
 
   const handleSubmit = async () => {
-    if (!stripe || !elements) return;
+    if (!stripe || !elements) {
+      onError("Stripe não carregou. Recarregue a página e tente novamente.");
+      return;
+    }
 
     setProcessing(true);
 
     const cardNumber = elements.getElement(CardNumberElement);
-    if (!cardNumber) { setProcessing(false); return; }
+    if (!cardNumber) {
+      setProcessing(false);
+      onError("Campos do cartão não encontrados. Recarregue a página.");
+      return;
+    }
 
     const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: {
         card: cardNumber,
-        billing_details: { name: cardholderName },
+        billing_details: { name: cardholderName || "Cliente" },
       },
     });
 
@@ -85,20 +85,20 @@ function CardFormInner({
     <div className="space-y-4">
       <div>
         <Label className="dark:text-white text-sm font-medium">Número do Cartão</Label>
-        <div className="mt-1 border rounded-lg px-4 py-3 bg-white dark:bg-gray-700 dark:border-gray-600 focus-within:ring-2 focus-within:ring-emerald-500 transition-all">
+        <div className="mt-1 border-2 rounded-lg px-4 py-3 bg-white dark:bg-gray-700 dark:border-gray-600 focus-within:border-emerald-500 transition-all">
           <CardNumberElement options={ELEMENT_OPTIONS} />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label className="dark:text-white text-sm font-medium">Validade</Label>
-          <div className="mt-1 border rounded-lg px-4 py-3 bg-white dark:bg-gray-700 dark:border-gray-600 focus-within:ring-2 focus-within:ring-emerald-500 transition-all">
+          <div className="mt-1 border-2 rounded-lg px-4 py-3 bg-white dark:bg-gray-700 dark:border-gray-600 focus-within:border-emerald-500 transition-all">
             <CardExpiryElement options={ELEMENT_OPTIONS} />
           </div>
         </div>
         <div>
           <Label className="dark:text-white text-sm font-medium">CVV</Label>
-          <div className="mt-1 border rounded-lg px-4 py-3 bg-white dark:bg-gray-700 dark:border-gray-600 focus-within:ring-2 focus-within:ring-emerald-500 transition-all">
+          <div className="mt-1 border-2 rounded-lg px-4 py-3 bg-white dark:bg-gray-700 dark:border-gray-600 focus-within:border-emerald-500 transition-all">
             <CardCvcElement options={ELEMENT_OPTIONS} />
           </div>
         </div>
@@ -106,7 +106,7 @@ function CardFormInner({
 
       <Button
         onClick={handleSubmit}
-        disabled={processing || !stripe}
+        disabled={processing || !stripe || !elements}
         className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6"
       >
         {processing ? (
@@ -120,7 +120,7 @@ function CardFormInner({
       </Button>
 
       <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-        Pagamento seguro processado pelo Stripe. Os seus dados nunca passam pelo nosso servidor.
+        Pagamento seguro processado pelo Stripe. Os seus dados são encriptados.
       </p>
     </div>
   );
@@ -135,12 +135,15 @@ interface StripeCardFormProps {
   setProcessing: (v: boolean) => void;
   finalPrice: number;
   currencySymbol: string;
+  publishableKey: string;
 }
 
-export default function StripeCardForm(props: StripeCardFormProps) {
+export default function StripeCardForm({ publishableKey, clientSecret, ...props }: StripeCardFormProps) {
+  const stripePromise = loadStripe(publishableKey);
+
   return (
-    <Elements stripe={stripePromise}>
-      <CardFormInner {...props} />
+    <Elements stripe={stripePromise} options={{ clientSecret }}>
+      <CardFormInner clientSecret={clientSecret} {...props} />
     </Elements>
   );
 }
