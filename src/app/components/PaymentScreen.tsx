@@ -146,7 +146,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
       const data = await res.json();
       if (!res.ok || data.error) {
         setPaymentStatus("failed");
-        setPaymentError(data.error || "Erro ao iniciar pagamento. Tente novamente.");
+        setPaymentError(`Erro Stripe: ${data.error || "Erro desconhecido"} (status: ${res.status})`);
         return;
       }
       setClientSecret(data.clientSecret);
@@ -154,7 +154,7 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
       setPaymentStatus("waiting_card");
     } catch (e: any) {
       setPaymentStatus("failed");
-      setPaymentError(e.message || "Erro de conexão. Tente novamente.");
+      setPaymentError(`Erro de conexão: ${e.message}`);
     }
   };
 
