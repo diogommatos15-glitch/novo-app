@@ -606,17 +606,52 @@ export default function PaymentScreen({ userData, onComplete, onBack }: PaymentS
               </div>
             </Card>
 
-            <Card className="p-4 bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700">
-              <div className="flex gap-3">
-                <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                <div className="text-sm text-blue-900 dark:text-blue-100">
-                  <p className="font-semibold mb-1">Pagamento 100% Seguro via Stripe</p>
-                  <p className="text-blue-700 dark:text-blue-300">
-                    Processado pelo Stripe — líder mundial em pagamentos. Aceita cartões Visa, Mastercard, American Express e mais de 135 moedas.
-                  </p>
+            {/* Selo de segurança Stripe */}
+            <div className="border-2 border-emerald-200 dark:border-emerald-700 rounded-xl bg-white dark:bg-gray-800 p-5 shadow-sm">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white text-base">Pagamento 100% Seguro</p>
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold">Aprovado e certificado pela Stripe</p>
                 </div>
               </div>
-            </Card>
+
+              {/* Ícones de cartões */}
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-md">VISA</div>
+                <div className="bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-md">MC</div>
+                <div className="bg-blue-800 text-white text-xs font-bold px-2 py-1.5 rounded-md">AMEX</div>
+                <div className="bg-orange-500 text-white text-xs font-bold px-2 py-1.5 rounded-md">DISC</div>
+              </div>
+
+              {/* Garantias */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <span>Encriptação SSL de 256 bits</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <span>Dados do cartão nunca armazenados</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <span>Proteção contra fraude 3D Secure</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  <span>Garantia de 30 dias ou devolução total</span>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-4 border-t dark:border-gray-600 text-center">
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  Processado por <span className="font-bold text-gray-600 dark:text-gray-300">Stripe</span> — líder mundial em pagamentos seguros, utilizado por Amazon, Google e milhões de empresas.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
