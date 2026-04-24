@@ -1,0 +1,18 @@
+{
+  "name": "layout.tsx",
+  "path": "src/app/layout.tsx",
+  "sha": "11aef3c939cbece8509dd461ca613bafbacb7f20",
+  "size": 937,
+  "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/contents/src/app/layout.tsx?ref=main",
+  "html_url": "https://github.com/diogommatos15-glitch/novo-app/blob/main/src/app/layout.tsx",
+  "git_url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/git/blobs/11aef3c939cbece8509dd461ca613bafbacb7f20",
+  "download_url": "https://raw.githubusercontent.com/diogommatos15-glitch/novo-app/main/src/app/layout.tsx",
+  "type": "file",
+  "content": "Ly8gR2VuZXJhdGVkIGJ5IExhc3kgQUkgLSBodHRwczovL2xhc3kuYWkKaW1w\nb3J0IHR5cGUgeyBNZXRhZGF0YSB9IGZyb20gIm5leHQiOwppbXBvcnQgeyBH\nZWlzdCwgR2Vpc3RfTW9ubyB9IGZyb20gIm5leHQvZm9udC9nb29nbGUiOwoK\naW1wb3J0ICIuL2dsb2JhbHMuY3NzIjsKLy8gSW1wb3J0IGFsbCBhdmFpbGFi\nbGUgZm9udHMgZm9yIEFJIHVzYWdlCmltcG9ydCAiLi4vbGliL2ZvbnRzIjsK\nCmNvbnN0IGdlaXN0U2FucyA9IEdlaXN0KHsKICB2YXJpYWJsZTogIi0tZm9u\ndC1nZWlzdC1zYW5zIiwKICBzdWJzZXRzOiBbImxhdGluIl0sCn0pOwoKY29u\nc3QgZ2Vpc3RNb25vID0gR2Vpc3RfTW9ubyh7CiAgdmFyaWFibGU6ICItLWZv\nbnQtZ2Vpc3QtbW9ubyIsCiAgc3Vic2V0czogWyJsYXRpbiJdLAp9KTsKCmV4\ncG9ydCBjb25zdCBtZXRhZGF0YTogTWV0YWRhdGEgPSB7CiAgdGl0bGU6ICJO\ndXRyaUxpZmUgLSBTZXUgUGxhbm8gZGUgRW1hZ3JlY2ltZW50byBQZXJzb25h\nbGl6YWRvIiwKICBkZXNjcmlwdGlvbjogIlRyYW5zZm9ybWUgc2V1IGNvcnBv\nIGNvbSBpbnRlbGlnw6puY2lhIGFydGlmaWNpYWwuIFBsYW5vIHBlcnNvbmFs\naXphZG8sIGFuw6FsaXNlIGRlIGZvdG9zIGUgYWNvbXBhbmhhbWVudG8gcHJv\nZmlzc2lvbmFsLiIsCn07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBSb290\nTGF5b3V0KHsKICBjaGlsZHJlbiwKfTogUmVhZG9ubHk8ewogIGNoaWxkcmVu\nOiBSZWFjdC5SZWFjdE5vZGU7Cn0+KSB7CiAgcmV0dXJuICgKICAgIDxodG1s\nIGxhbmc9InB0LUJSIj4KICAgICAgCiAgICAgIDxib2R5CiAgICAgICAgY2xh\nc3NOYW1lPXtgJHtnZWlzdFNhbnMudmFyaWFibGV9ICR7Z2Vpc3RNb25vLnZh\ncmlhYmxlfSBhbnRpYWxpYXNlZGB9CiAgICAgID4KICAgICAgICB7Y2hpbGRy\nZW59CiAgICAgIDwvYm9keT4KICAgIDwvaHRtbD4KICApOwp9Cg==\n",
+  "encoding": "base64",
+  "_links": {
+    "self": "https://api.github.com/repos/diogommatos15-glitch/novo-app/contents/src/app/layout.tsx?ref=main",
+    "git": "https://api.github.com/repos/diogommatos15-glitch/novo-app/git/blobs/11aef3c939cbece8509dd461ca613bafbacb7f20",
+    "html": "https://github.com/diogommatos15-glitch/novo-app/blob/main/src/app/layout.tsx"
+  }
+}
