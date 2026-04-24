@@ -1,0 +1,248 @@
+[
+  {
+    "sha": "71293ea1ef8f97dca554d2ecca9a5347d2bc82c3",
+    "node_id": "C_kwDOQqPuYNoAKDcxMjkzZWExZWY4Zjk3ZGNhNTU0ZDJlY2NhOWE1MzQ3ZDJiYzgyYzM",
+    "commit": {
+      "author": {
+        "name": "diogommatos15-glitch",
+        "email": "diogommatos15@gmail.com",
+        "date": "2026-04-24T12:26:34Z"
+      },
+      "committer": {
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2026-04-24T12:26:34Z"
+      },
+      "message": "Update layout.tsx",
+      "tree": {
+        "sha": "b2bdfece7ffb4db645facd6b47e91b56b2abe659",
+        "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/git/trees/b2bdfece7ffb4db645facd6b47e91b56b2abe659"
+      },
+      "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/git/commits/71293ea1ef8f97dca554d2ecca9a5347d2bc82c3",
+      "comment_count": 0,
+      "verification": {
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJp62F7CRC1aQ7uu5UhlAAAw3cQAAyUk277IAot/58gO6Yiar0Z\n0GhEB+CcyMQDv1CD21RO1uaRpNZZcC+TpzDf3omaF8SgDvnIgxoC+nCQeSsxDVQT\nd7fH3br83olX4hSWLJkyfUg8vS0avHIjj7pOAh1AMm9zP1aGcewDdsIHAjQI0WDP\nbnYKezOH+8gO5qhjw+AJ/8uJChSTPLvlFbuyS1PODS4RQXifzOvzvWXSddK89Mqc\nhm8s+TfwUflNPbq0BPdWutDz+XqtQZBjRulvra5sM5zs7QpGHUAJ7ewqNC931gdg\n4TlYE/Fp5BpeJbvjpC2iOekf2OUaTEPwAPK4KOEWNEmBLW8AWgGe4YIfboTBBlQn\ngQSXP1B3F1aIO9sfEtdYjG2yXH51UkaDhBUg8F6DzdvoHZQto4XuTpg1K7xtdZnZ\n55/eB98Zlgn2SLjyv8eLZa47qw3MjvyvVn/NIutCzPN4mrtCOgbYd4CL9cWbUEc3\nF+f1zcTlALqHfB/g2ATO7yWEoZjgH3tVaaGn9u1prcM3EA/HoSXFkAWQ/yX5ir+J\nPTQKgInj4cDfBeBj8HAbi6TPCnZOckARpzqkjF0t17X/FbHROeN7wCkMHFmsJJY8\nGyIhK5x3qCgYW7zFh6IqYIPjsa0YqzwSVEjX1ETQvjLJDftsG3wdM0ypTRyKV1mc\n8VdnbfuY+sRSfPkxRcPM\n=oRoo\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree b2bdfece7ffb4db645facd6b47e91b56b2abe659\nparent 92923f5e5992e3c0444d88b38501eee0248a1c73\nauthor diogommatos15-glitch <diogommatos15@gmail.com> 1777033594 +0100\ncommitter GitHub <noreply@github.com> 1777033594 +0100\n\nUpdate layout.tsx",
+        "verified_at": "2026-04-24T12:26:35Z"
+      }
+    },
+    "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/commits/71293ea1ef8f97dca554d2ecca9a5347d2bc82c3",
+    "html_url": "https://github.com/diogommatos15-glitch/novo-app/commit/71293ea1ef8f97dca554d2ecca9a5347d2bc82c3",
+    "comments_url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/commits/71293ea1ef8f97dca554d2ecca9a5347d2bc82c3/comments",
+    "author": {
+      "login": "diogommatos15-glitch",
+      "id": 249799561,
+      "node_id": "U_kgDODuOjiQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/249799561?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/diogommatos15-glitch",
+      "html_url": "https://github.com/diogommatos15-glitch",
+      "followers_url": "https://api.github.com/users/diogommatos15-glitch/followers",
+      "following_url": "https://api.github.com/users/diogommatos15-glitch/following{/other_user}",
+      "gists_url": "https://api.github.com/users/diogommatos15-glitch/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/diogommatos15-glitch/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/diogommatos15-glitch/subscriptions",
+      "organizations_url": "https://api.github.com/users/diogommatos15-glitch/orgs",
+      "repos_url": "https://api.github.com/users/diogommatos15-glitch/repos",
+      "events_url": "https://api.github.com/users/diogommatos15-glitch/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/diogommatos15-glitch/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "92923f5e5992e3c0444d88b38501eee0248a1c73",
+        "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/commits/92923f5e5992e3c0444d88b38501eee0248a1c73",
+        "html_url": "https://github.com/diogommatos15-glitch/novo-app/commit/92923f5e5992e3c0444d88b38501eee0248a1c73"
+      }
+    ]
+  },
+  {
+    "sha": "92923f5e5992e3c0444d88b38501eee0248a1c73",
+    "node_id": "C_kwDOQqPuYNoAKDkyOTIzZjVlNTk5MmUzYzA0NDRkODhiMzg1MDFlZWUwMjQ4YTFjNzM",
+    "commit": {
+      "author": {
+        "name": "diogommatos15-glitch",
+        "email": "diogommatos15@gmail.com",
+        "date": "2026-01-01T22:58:57Z"
+      },
+      "committer": {
+        "name": "diogommatos15-glitch",
+        "email": "diogommatos15@gmail.com",
+        "date": "2026-01-01T22:58:57Z"
+      },
+      "message": "🤖 Update from Lasy: Food Analysis",
+      "tree": {
+        "sha": "d67c7363a74a2372b972949bf60a020a3829d282",
+        "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/git/trees/d67c7363a74a2372b972949bf60a020a3829d282"
+      },
+      "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/git/commits/92923f5e5992e3c0444d88b38501eee0248a1c73",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/commits/92923f5e5992e3c0444d88b38501eee0248a1c73",
+    "html_url": "https://github.com/diogommatos15-glitch/novo-app/commit/92923f5e5992e3c0444d88b38501eee0248a1c73",
+    "comments_url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/commits/92923f5e5992e3c0444d88b38501eee0248a1c73/comments",
+    "author": {
+      "login": "diogommatos15-glitch",
+      "id": 249799561,
+      "node_id": "U_kgDODuOjiQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/249799561?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/diogommatos15-glitch",
+      "html_url": "https://github.com/diogommatos15-glitch",
+      "followers_url": "https://api.github.com/users/diogommatos15-glitch/followers",
+      "following_url": "https://api.github.com/users/diogommatos15-glitch/following{/other_user}",
+      "gists_url": "https://api.github.com/users/diogommatos15-glitch/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/diogommatos15-glitch/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/diogommatos15-glitch/subscriptions",
+      "organizations_url": "https://api.github.com/users/diogommatos15-glitch/orgs",
+      "repos_url": "https://api.github.com/users/diogommatos15-glitch/repos",
+      "events_url": "https://api.github.com/users/diogommatos15-glitch/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/diogommatos15-glitch/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "diogommatos15-glitch",
+      "id": 249799561,
+      "node_id": "U_kgDODuOjiQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/249799561?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/diogommatos15-glitch",
+      "html_url": "https://github.com/diogommatos15-glitch",
+      "followers_url": "https://api.github.com/users/diogommatos15-glitch/followers",
+      "following_url": "https://api.github.com/users/diogommatos15-glitch/following{/other_user}",
+      "gists_url": "https://api.github.com/users/diogommatos15-glitch/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/diogommatos15-glitch/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/diogommatos15-glitch/subscriptions",
+      "organizations_url": "https://api.github.com/users/diogommatos15-glitch/orgs",
+      "repos_url": "https://api.github.com/users/diogommatos15-glitch/repos",
+      "events_url": "https://api.github.com/users/diogommatos15-glitch/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/diogommatos15-glitch/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "ac0477a95d5bac429ed540a73b264b83e30d93fe",
+        "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/commits/ac0477a95d5bac429ed540a73b264b83e30d93fe",
+        "html_url": "https://github.com/diogommatos15-glitch/novo-app/commit/ac0477a95d5bac429ed540a73b264b83e30d93fe"
+      }
+    ]
+  },
+  {
+    "sha": "ac0477a95d5bac429ed540a73b264b83e30d93fe",
+    "node_id": "C_kwDOQqPuYNoAKGFjMDQ3N2E5NWQ1YmFjNDI5ZWQ1NDBhNzNiMjY0YjgzZTMwZDkzZmU",
+    "commit": {
+      "author": {
+        "name": "diogommatos15-glitch",
+        "email": "diogommatos15@gmail.com",
+        "date": "2025-12-17T07:25:06Z"
+      },
+      "committer": {
+        "name": "diogommatos15-glitch",
+        "email": "diogommatos15@gmail.com",
+        "date": "2025-12-17T07:25:06Z"
+      },
+      "message": "🤖 Update from Lasy: novo-app",
+      "tree": {
+        "sha": "9d4b8b1b38c4bf0791318c4a7ef825d91ddbfc2b",
+        "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/git/trees/9d4b8b1b38c4bf0791318c4a7ef825d91ddbfc2b"
+      },
+      "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/git/commits/ac0477a95d5bac429ed540a73b264b83e30d93fe",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/commits/ac0477a95d5bac429ed540a73b264b83e30d93fe",
+    "html_url": "https://github.com/diogommatos15-glitch/novo-app/commit/ac0477a95d5bac429ed540a73b264b83e30d93fe",
+    "comments_url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/commits/ac0477a95d5bac429ed540a73b264b83e30d93fe/comments",
+    "author": {
+      "login": "diogommatos15-glitch",
+      "id": 249799561,
+      "node_id": "U_kgDODuOjiQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/249799561?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/diogommatos15-glitch",
+      "html_url": "https://github.com/diogommatos15-glitch",
+      "followers_url": "https://api.github.com/users/diogommatos15-glitch/followers",
+      "following_url": "https://api.github.com/users/diogommatos15-glitch/following{/other_user}",
+      "gists_url": "https://api.github.com/users/diogommatos15-glitch/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/diogommatos15-glitch/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/diogommatos15-glitch/subscriptions",
+      "organizations_url": "https://api.github.com/users/diogommatos15-glitch/orgs",
+      "repos_url": "https://api.github.com/users/diogommatos15-glitch/repos",
+      "events_url": "https://api.github.com/users/diogommatos15-glitch/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/diogommatos15-glitch/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "diogommatos15-glitch",
+      "id": 249799561,
+      "node_id": "U_kgDODuOjiQ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/249799561?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/diogommatos15-glitch",
+      "html_url": "https://github.com/diogommatos15-glitch",
+      "followers_url": "https://api.github.com/users/diogommatos15-glitch/followers",
+      "following_url": "https://api.github.com/users/diogommatos15-glitch/following{/other_user}",
+      "gists_url": "https://api.github.com/users/diogommatos15-glitch/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/diogommatos15-glitch/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/diogommatos15-glitch/subscriptions",
+      "organizations_url": "https://api.github.com/users/diogommatos15-glitch/orgs",
+      "repos_url": "https://api.github.com/users/diogommatos15-glitch/repos",
+      "events_url": "https://api.github.com/users/diogommatos15-glitch/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/diogommatos15-glitch/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "dcf5dedc0ef34de806d38bd020f8b3f7b00347aa",
+        "url": "https://api.github.com/repos/diogommatos15-glitch/novo-app/commits/dcf5dedc0ef34de806d38bd020f8b3f7b00347aa",
+        "html_url": "https://github.com/diogommatos15-glitch/novo-app/commit/dcf5dedc0ef34de806d38bd020f8b3f7b00347aa"
+      }
+    ]
+  }
+]
