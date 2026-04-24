@@ -42,7 +42,14 @@ coverage/
 *.log
 Thumbs.db
 
-# NOTE: .env files are NOT ignored - they are important for the project
+# Environment variables - NEVER commit these
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+
 .lasy/
 .vercel
 
